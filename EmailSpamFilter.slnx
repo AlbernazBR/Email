@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EmailSpamFilter.Application/EmailSpamFilter.Application.csproj" />
+    <Project Path="src/EmailSpamFilter.Domain/EmailSpamFilter.Domain.csproj" />
+    <Project Path="src/EmailSpamFilter.Infrastructure/EmailSpamFilter.Infrastructure.csproj" />
+    <Project Path="src/EmailSpamFilter.Worker/EmailSpamFilter.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EmailSpamFilter.Application.Tests/EmailSpamFilter.Application.Tests.csproj" />
+    <Project Path="tests/EmailSpamFilter.Domain.Tests/EmailSpamFilter.Domain.Tests.csproj" />
+    <Project Path="tests/EmailSpamFilter.Infrastructure.Tests/EmailSpamFilter.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

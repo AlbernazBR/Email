@@ -1,0 +1,33 @@
+{
+  "padroes": [
+    "unsubscribe",
+    "bulk",
+    "mailer",
+    "tracking"
+  ],
+  "padroesPorRemetente": [
+    "mailing.",
+    "syncservice",
+    "cloudnotify",
+    "noticiaappurgente"
+  ],
+  "padroesPorCabecalho": [
+    "campanhasbradesco"
+  ],
+  "impostores": [
+    { "palavra": "bradesco",       "dominioLegitimo": "bradesco.com.br" },
+    { "palavra": "itau",           "dominioLegitimo": "itau.com.br" },
+    { "palavra": "caixa",          "dominioLegitimo": "caixa.gov.br" },
+    { "palavra": "nubank",         "dominioLegitimo": "nubank.com.br" },
+    { "palavra": "santander",      "dominioLegitimo": "santander.com.br" },
+    { "palavra": "correios",       "dominioLegitimo": "correios.com.br" },
+    { "palavra": "receita federal","dominioLegitimo": "fazenda.gov.br" },
+    { "palavra": "mercado pago",   "dominioLegitimo": "mercadopago.com" },
+    { "palavra": "livelo",         "dominioLegitimo": "livelo.com.br" }
+  ],
+  "padroesDominioSuspeito": [
+    "\\d{6,}",
+    "---",
+    "@[^.@\\s]+\\s"
+  ]
+}

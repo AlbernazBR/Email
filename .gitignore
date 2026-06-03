@@ -1,0 +1,42 @@
+## Artefatos de build
+bin/
+obj/
+out/
+
+## Pacotes NuGet (restaurados automaticamente)
+packages/
+*.nupkg
+*.snupkg
+
+## Credenciais — NUNCA commitar
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/secrets.json
+**/usersecrets/
+**/*.user
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Rider / JetBrains
+.idea/
+*.DotSettings.user
+
+## VS Code
+.vscode/
+!.vscode/extensions.json
+
+## Logs gerados em runtime
+logs/
+*.log
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Publicação
+publish/
