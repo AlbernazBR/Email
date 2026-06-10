@@ -8,10 +8,5 @@ public sealed class ConfiguracoesFiltro
     public string ArquivoBloqueio { get; set; } = "bloqueio.json";
     public AcaoFiltro Acao { get; set; } = AcaoFiltro.Deletar;
     public int MaximoEmailsPorCiclo { get; set; } = 100;
-
-    /// <summary>
-    /// Quando true, também escaneia Lixo Eletrônico e Junk além do Inbox.
-    /// </summary>
-    public bool MonitorarLixoEletronico { get; set; } = true;
     public bool ModoSimulacao { get; set; } = false;
 }

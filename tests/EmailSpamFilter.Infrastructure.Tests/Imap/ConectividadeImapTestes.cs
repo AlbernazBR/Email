@@ -79,10 +79,8 @@ public sealed class ConectividadeImapTestes
 
         var opcoes = Options.Create(config);
         var provedor = new ProvedorTokenOAuth(opcoes, NullLogger<ProvedorTokenOAuth>.Instance);
-        var opcoesConfig = Options.Create(new ConfiguracoesFiltro());
         var leitor = new LeitorEmailImap(
             new FabricaClienteImap(opcoes, provedor),
-            opcoesConfig,
             NullLogger<LeitorEmailImap>.Instance);
 
         var emails = await leitor.ObterNaoLidosAsync(maximo: 5, CancellationToken.None);

@@ -11,12 +11,6 @@ public sealed class AcoesEmailImap : IAcoesEmail
 
     public AcoesEmailImap(FabricaClienteImap fabrica) => _fabrica = fabrica;
 
-    public Task DeletarAsync(MensagemEmail mensagem, CancellationToken ct)
-        => DeletarLoteAsync([mensagem], ct);
-
-    public Task MoverParaLixoAsync(MensagemEmail mensagem, CancellationToken ct)
-        => MoverParaLixoLoteAsync([mensagem], ct);
-
     public async Task DeletarLoteAsync(IReadOnlyList<MensagemEmail> mensagens, CancellationToken ct)
     {
         if (mensagens.Count == 0) return;
@@ -54,7 +48,7 @@ public sealed class AcoesEmailImap : IAcoesEmail
 
             if (uids.Count > 0)
             {
-                if (lixo is not null)
+                if (lixo is not null && lixo.FullName != pasta.FullName)
                     await pasta.MoveToAsync(uids, lixo, ct);
                 else
                     await pasta.AddFlagsAsync(uids, MessageFlags.Deleted, true, ct);
@@ -87,13 +81,30 @@ public sealed class AcoesEmailImap : IAcoesEmail
         return pasta;
     }
 
+    private static readonly string[] _nomesLixeira =
+        ["Deleted Items", "Itens Excluídos", "Trash", "Lixeira", "Deleted"];
+
     private static IMailFolder? ResolverPastaLixo(ImapClient client)
     {
-        try { return client.GetFolder(SpecialFolder.Junk); }
-        catch { /* pasta Junk não disponível */ }
+        // Tenta pelo atributo especial \Trash (Deleted Items no Outlook)
+        try
+        {
+            var pasta = client.GetFolder(SpecialFolder.Trash);
+            return pasta;
+        }
+        catch { /* pasta Trash não disponível via atributo especial */ }
 
-        try { return client.GetFolder(SpecialFolder.Trash); }
-        catch { /* pasta Trash não disponível */ }
+        // Fallback: busca por nome comum da lixeira nas pastas pessoais
+        try
+        {
+            var raiz = client.GetFolder(client.PersonalNamespaces[0]);
+            foreach (var subpasta in raiz.GetSubfolders(false))
+            {
+                if (_nomesLixeira.Any(n => string.Equals(subpasta.Name, n, StringComparison.OrdinalIgnoreCase)))
+                    return subpasta;
+            }
+        }
+        catch { /* fallback falhou */ }
 
         return null;
     }

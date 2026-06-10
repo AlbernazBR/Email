@@ -10,4 +10,7 @@
     <Project Path="tests/EmailSpamFilter.Domain.Tests/EmailSpamFilter.Domain.Tests.csproj" />
     <Project Path="tests/EmailSpamFilter.Infrastructure.Tests/EmailSpamFilter.Infrastructure.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/InjetorEmailsTeste/InjetorEmailsTeste.csproj" />
+  </Folder>
 </Solution>

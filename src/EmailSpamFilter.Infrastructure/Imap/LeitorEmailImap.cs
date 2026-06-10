@@ -1,11 +1,9 @@
 using EmailSpamFilter.Domain.Entidades;
 using EmailSpamFilter.Domain.Interfaces;
-using EmailSpamFilter.Infrastructure.Configuracao;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace EmailSpamFilter.Infrastructure.Imap;
 
@@ -19,7 +17,6 @@ public sealed class LeitorEmailImap : ILeitorEmail
 
     public LeitorEmailImap(
         FabricaClienteImap fabrica,
-        IOptions<ConfiguracoesFiltro> options,
         ILogger<LeitorEmailImap> logger)
     {
         _fabrica = fabrica;
