@@ -9,7 +9,8 @@
     "mailing.",
     "syncservice",
     "cloudnotify",
-    "noticiaappurgente"
+    "noticiaappurgente",
+    "adsphereo"
   ],
   "padroesPorCabecalho": [
     "campanhasbradesco"
@@ -28,6 +29,7 @@
   "padroesDominioSuspeito": [
     "\\d{6,}",
     "---",
-    "@[^.@\\s]+\\s"
+    "@[^.@\\s]+\\s",
+    "@[a-z]+-[a-z0-9]{2,6}-[a-z0-9]{2,6}\\."
   ]
 }
