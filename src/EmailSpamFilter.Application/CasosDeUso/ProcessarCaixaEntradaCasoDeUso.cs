@@ -43,40 +43,7 @@ public sealed class ProcessarCaixaEntradaCasoDeUso : IProcessarCaixaEntradaCasoD
         {
             try
             {
-                var resultado = mensagem.Analisar(regrasAtivas, impostoras, remetenteRegex);
-
-                if (resultado.EhSpam)
-                {
-                    _logger.LogInformation(
-                        "[SPAM]{Modo} De: {NomeExibido} <{Remetente}> | Assunto: {Assunto} | Regra: {Regra} | Campo: {Campo}",
-                        opcoes.ModoSimulacao ? " [SIM]" : "",
-                        mensagem.Remetente.NomeExibido,
-                        mensagem.Remetente.Valor,
-                        mensagem.Assunto,
-                        resultado.RegraCorrespondente,
-                        resultado.CampoCorrespondente);
-
-                    if (!opcoes.ModoSimulacao)
-                    {
-                        if (opcoes.Acao == AcaoFiltro.MoverParaLixo)
-                            spamParaMover.Add(mensagem);
-                        else
-                            spamParaDeletar.Add(mensagem);
-                    }
-                    else
-                    {
-                        // Conta como spam para o relatório do ciclo, mas não age
-                        spamParaDeletar.Add(mensagem);
-                    }
-                }
-                else
-                {
-                    _logger.LogDebug(
-                        "[LIMPO] De: {NomeExibido} <{Remetente}> | Assunto: {Assunto}",
-                        mensagem.Remetente.NomeExibido,
-                        mensagem.Remetente.Valor,
-                        mensagem.Assunto);
-                }
+                ClassificarMensagem(mensagem, regrasAtivas, impostoras, remetenteRegex, opcoes, spamParaDeletar, spamParaMover);
             }
             catch (Exception ex)
             {
@@ -85,20 +52,7 @@ public sealed class ProcessarCaixaEntradaCasoDeUso : IProcessarCaixaEntradaCasoD
         }
 
         if (!opcoes.ModoSimulacao)
-        {
-            try
-            {
-                if (spamParaDeletar.Count > 0)
-                    await _acoes.DeletarLoteAsync(spamParaDeletar, ct);
-
-                if (spamParaMover.Count > 0)
-                    await _acoes.MoverParaLixoLoteAsync(spamParaMover, ct);
-            }
-            catch (Exception ex)
-            {
-                erros.Add($"Erro na operação em lote: {ex.Message}");
-            }
-        }
+            await ExecutarAcoesLoteAsync(spamParaDeletar, spamParaMover, erros, ct);
 
         return new ResultadoProcessamento
         {
@@ -106,5 +60,68 @@ public sealed class ProcessarCaixaEntradaCasoDeUso : IProcessarCaixaEntradaCasoD
             QuantidadeSpam = spamParaDeletar.Count + spamParaMover.Count,
             Erros = erros.AsReadOnly()
         };
+    }
+
+    private void ClassificarMensagem(
+        MensagemEmail mensagem,
+        IReadOnlyList<RegraSpam> regrasAtivas,
+        IReadOnlyList<RegraImpostora> impostoras,
+        IReadOnlyList<RegraRemetenteRegex> remetenteRegex,
+        OpcoesProcessamento opcoes,
+        List<MensagemEmail> spamParaDeletar,
+        List<MensagemEmail> spamParaMover)
+    {
+        var resultado = mensagem.Analisar(regrasAtivas, impostoras, remetenteRegex);
+
+        if (resultado.EhSpam)
+        {
+            _logger.LogInformation(
+                "[SPAM]{Modo} De: {NomeExibido} <{Remetente}> | Assunto: {Assunto} | Regra: {Regra} | Campo: {Campo}",
+                opcoes.ModoSimulacao ? " [SIM]" : "",
+                mensagem.Remetente.NomeExibido,
+                mensagem.Remetente.Valor,
+                mensagem.Assunto,
+                resultado.RegraCorrespondente,
+                resultado.CampoCorrespondente);
+
+            if (opcoes.ModoSimulacao)
+            {
+                spamParaDeletar.Add(mensagem);
+                return;
+            }
+
+            if (opcoes.Acao == AcaoFiltro.MoverParaLixo)
+                spamParaMover.Add(mensagem);
+            else
+                spamParaDeletar.Add(mensagem);
+        }
+        else
+        {
+            _logger.LogDebug(
+                "[LIMPO] De: {NomeExibido} <{Remetente}> | Assunto: {Assunto}",
+                mensagem.Remetente.NomeExibido,
+                mensagem.Remetente.Valor,
+                mensagem.Assunto);
+        }
+    }
+
+    private async Task ExecutarAcoesLoteAsync(
+        List<MensagemEmail> spamParaDeletar,
+        List<MensagemEmail> spamParaMover,
+        List<string> erros,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (spamParaDeletar.Count > 0)
+                await _acoes.DeletarLoteAsync(spamParaDeletar, ct);
+
+            if (spamParaMover.Count > 0)
+                await _acoes.MoverParaLixoLoteAsync(spamParaMover, ct);
+        }
+        catch (Exception ex)
+        {
+            erros.Add($"Erro na operação em lote: {ex.Message}");
+        }
     }
 }

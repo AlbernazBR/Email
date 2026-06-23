@@ -22,7 +22,7 @@ public sealed class RegrasBloqueio
     public void AdicionarRegra(RegraSpam regra)
     {
         if (_regras.Any(r => r.Padrao.Equals(regra.Padrao) && r.Ativa))
-            throw new ExcecaoDominio(
+            throw new ExcecaoDominioException(
                 $"Já existe uma regra ativa para o padrão '{regra.Padrao}'.");
 
         _regras.Add(regra);
@@ -47,7 +47,7 @@ public sealed class RegrasBloqueio
     public void RemoverRegra(Guid id)
     {
         var regra = _regras.FirstOrDefault(r => r.Id == id)
-            ?? throw new ExcecaoDominio($"Regra com id '{id}' não encontrada.");
+            ?? throw new ExcecaoDominioException($"Regra com id '{id}' não encontrada.");
 
         regra.Desativar();
     }

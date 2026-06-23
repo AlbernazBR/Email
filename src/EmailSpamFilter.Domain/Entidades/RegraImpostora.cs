@@ -21,10 +21,10 @@ public sealed class RegraImpostora
     public static RegraImpostora Criar(string palavra, string dominioLegitimo)
     {
         if (string.IsNullOrWhiteSpace(palavra))
-            throw new ExcecaoDominio("Palavra da regra de impostor não pode ser vazia.");
+            throw new ExcecaoDominioException("Palavra da regra de impostor não pode ser vazia.");
 
         if (string.IsNullOrWhiteSpace(dominioLegitimo))
-            throw new ExcecaoDominio("Domínio legítimo não pode ser vazio.");
+            throw new ExcecaoDominioException("Domínio legítimo não pode ser vazio.");
 
         return new RegraImpostora(
             palavra.Trim().ToLowerInvariant(),

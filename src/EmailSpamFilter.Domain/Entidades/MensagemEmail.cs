@@ -32,33 +32,17 @@ public sealed class MensagemEmail
         IEnumerable<RegraImpostora>? impostoras = null,
         IEnumerable<RegraRemetenteRegex>? remetenteRegex = null)
     {
-        foreach (var regra in regras)
-        {
-            if (regra.Corresponde(this))
-                return ResultadoFiltro.Spam(regra.Padrao.ToString(), regra.CampoCorrespondente(this));
-        }
+        var regraAtivada = regras.FirstOrDefault(r => r.Corresponde(this));
+        if (regraAtivada is not null)
+            return ResultadoFiltro.Spam(regraAtivada.Padrao.ToString(), regraAtivada.CampoCorrespondente(this));
 
-        if (impostoras is not null)
-        {
-            foreach (var impostor in impostoras)
-            {
-                if (impostor.Corresponde(this))
-                    return ResultadoFiltro.Spam(
-                        $"Impostor:{impostor.Palavra}",
-                        "Remetente");
-            }
-        }
+        var impostor = impostoras?.FirstOrDefault(i => i.Corresponde(this));
+        if (impostor is not null)
+            return ResultadoFiltro.Spam($"Impostor:{impostor.Palavra}", "Remetente");
 
-        if (remetenteRegex is not null)
-        {
-            foreach (var regexRegra in remetenteRegex)
-            {
-                if (regexRegra.Corresponde(this))
-                    return ResultadoFiltro.Spam(
-                        $"RemetenteGerado:{regexRegra.Padrao}",
-                        "Remetente");
-            }
-        }
+        var regexAtivada = remetenteRegex?.FirstOrDefault(r => r.Corresponde(this));
+        if (regexAtivada is not null)
+            return ResultadoFiltro.Spam($"RemetenteGerado:{regexAtivada.Padrao}", "Remetente");
 
         return ResultadoFiltro.Limpo();
     }

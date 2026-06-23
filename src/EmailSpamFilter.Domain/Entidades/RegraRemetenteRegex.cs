@@ -23,7 +23,7 @@ public sealed class RegraRemetenteRegex
     public static RegraRemetenteRegex Criar(string padrao)
     {
         if (string.IsNullOrWhiteSpace(padrao))
-            throw new ExcecaoDominio("Padrão de remetente regex não pode ser vazio.");
+            throw new ExcecaoDominioException("Padrão de remetente regex não pode ser vazio.");
 
         try
         {
@@ -36,7 +36,7 @@ public sealed class RegraRemetenteRegex
         }
         catch (ArgumentException ex)
         {
-            throw new ExcecaoDominio($"Padrão regex inválido '{padrao}': {ex.Message}");
+            throw new ExcecaoDominioException($"Padrão regex inválido '{padrao}': {ex.Message}");
         }
     }
 

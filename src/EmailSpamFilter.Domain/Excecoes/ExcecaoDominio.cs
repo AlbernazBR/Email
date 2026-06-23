@@ -1,7 +1,7 @@
 namespace EmailSpamFilter.Domain.Excecoes;
 
-public class ExcecaoDominio : Exception
+public class ExcecaoDominioException : Exception
 {
-    public ExcecaoDominio(string mensagem) : base(mensagem) { }
-    public ExcecaoDominio(string mensagem, Exception inner) : base(mensagem, inner) { }
+    public ExcecaoDominioException(string mensagem) : base(mensagem) { }
+    public ExcecaoDominioException(string mensagem, Exception inner) : base(mensagem, inner) { }
 }

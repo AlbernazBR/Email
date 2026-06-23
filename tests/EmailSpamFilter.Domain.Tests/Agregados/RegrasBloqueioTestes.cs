@@ -32,7 +32,7 @@ public sealed class RegrasBloqueioTestes
 
         var acao = () => regras.AdicionarRegra(CriarRegra("campanhasbradesco"));
 
-        acao.Should().Throw<ExcecaoDominio>();
+        acao.Should().Throw<ExcecaoDominioException>();
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class RegrasBloqueioTestes
 
         var acao = () => regras.RemoverRegra(Guid.NewGuid());
 
-        acao.Should().Throw<ExcecaoDominio>();
+        acao.Should().Throw<ExcecaoDominioException>();
     }
 
     [Fact]
