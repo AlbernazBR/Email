@@ -1,0 +1,73 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sonarcloud:
+    name: Análise SonarCloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # necessário para o SonarCloud analisar histórico
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Instalar dotnet-sonarscanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restaurar dependências
+        run: dotnet restore EmailSpamFilter.slnx
+
+      - name: Iniciar análise SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+            /k:"AlbernazBR_Email" \
+            /o:"albernazBR" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="**/bin/**,**/obj/**,**/tools/**" \
+            /d:sonar.coverage.exclusions="**/tests/**,**/tools/**"
+
+      - name: Build
+        run: dotnet build EmailSpamFilter.slnx --no-incremental
+
+      - name: Testes (excluindo integração)
+        run: |
+          dotnet test tests/EmailSpamFilter.Domain.Tests \
+            --no-build \
+            --filter "Category!=Integracao" \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=./coverage.opencover.xml
+
+          dotnet test tests/EmailSpamFilter.Application.Tests \
+            --no-build \
+            --filter "Category!=Integracao" \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=./coverage.opencover.xml
+
+          dotnet test tests/EmailSpamFilter.Infrastructure.Tests \
+            --no-build \
+            --filter "Category!=Integracao" \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput=./coverage.opencover.xml
+
+      - name: Finalizar e enviar para SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
