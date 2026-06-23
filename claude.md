@@ -1,4 +1,9 @@
-# EmailSpamFilter — Proposta de Arquitetura
+# EmailSpamFilter — Instruções para IA (Claude, Copilot, etc.)
+
+Este arquivo define os padrões obrigatórios de código deste projeto.
+Sempre siga estas regras ao gerar ou modificar código.
+
+---
 
 ## Objetivo
 
@@ -403,3 +408,236 @@ dotnet run --project src/EmailSpamFilter.Worker
 sc create EmailSpamFilter binPath="C:\caminho\EmailSpamFilter.Worker.exe"
 sc start EmailSpamFilter
 ```
+
+---
+
+## Padrões de Código Obrigatórios
+
+### Linguagem e Nomenclatura
+
+- **Idioma do código:** Português (classes, métodos, propriedades, variáveis, testes)
+- **Idioma dos comentários:** Português
+- **Idioma dos logs:** Português
+
+```csharp
+// ✅ Correto
+public sealed class ProcessarCaixaEntradaCasoDeUso { }
+public async Task<ResultadoProcessamento> ExecutarAsync(...) { }
+
+// ❌ Errado
+public sealed class ProcessInboxUseCase { }
+public async Task<ProcessingResult> ExecuteAsync(...) { }
+```
+
+---
+
+### Exceções de Domínio
+
+Toda exceção de domínio **deve** terminar com o sufixo `Exception`.
+
+```csharp
+// ✅ Correto
+public class ExcecaoDominioException : Exception { }
+public sealed class EnderecoEmailInvalidoException : ExcecaoDominioException { }
+public sealed class PadraoSpamInvalidoException : ExcecaoDominioException { }
+
+// ❌ Errado — SonarQube: "Make this class name end with 'Exception'"
+public class ExcecaoDominio : Exception { }
+```
+
+---
+
+### Loops — Prefira LINQ
+
+Nunca use `foreach` apenas para encontrar o primeiro elemento correspondente.
+
+```csharp
+// ✅ Correto — LINQ com FirstOrDefault
+var regraAtivada = regras.FirstOrDefault(r => r.Corresponde(this));
+if (regraAtivada is not null)
+    return ResultadoFiltro.Spam(regraAtivada.Padrao.ToString(), ...);
+
+var impostor = impostoras?.FirstOrDefault(i => i.Corresponde(this));
+if (impostor is not null)
+    return ResultadoFiltro.Spam($"Impostor:{impostor.Palavra}", "Remetente");
+
+// ❌ Errado — SonarQube: "Loops should be simplified using the 'Where' LINQ method"
+foreach (var regra in regras)
+{
+    if (regra.Corresponde(this))
+        return ResultadoFiltro.Spam(regra.Padrao.ToString(), ...);
+}
+```
+
+---
+
+### Complexidade Cognitiva
+
+Mantenha a complexidade cognitiva de cada método **abaixo de 15**.
+Se um método ultrapassa esse limite, extraia métodos privados com nomes descritivos.
+
+```csharp
+// ✅ Correto — método público simples, lógica extraída
+public async Task<ResultadoProcessamento> ExecutarAsync(OpcoesProcessamento opcoes, CancellationToken ct)
+{
+    foreach (var mensagem in mensagens)
+    {
+        try { ClassificarMensagem(mensagem, ..., spamParaDeletar, spamParaMover); }
+        catch (Exception ex) { erros.Add(...); }
+    }
+
+    if (!opcoes.ModoSimulacao)
+        await ExecutarAcoesLoteAsync(spamParaDeletar, spamParaMover, erros, ct);
+
+    return new ResultadoProcessamento { ... };
+}
+
+private void ClassificarMensagem(...) { /* lógica de classificação */ }
+private async Task ExecutarAcoesLoteAsync(...) { /* lógica de lote */ }
+
+// ❌ Errado — SonarQube: "Refactor this method to reduce its Cognitive Complexity from 25 to 15"
+public async Task<ResultadoProcessamento> ExecutarAsync(...)
+{
+    // 70 linhas com ifs e foreachs aninhados...
+}
+```
+
+---
+
+### Catch Vazio — Nunca deixe silencioso
+
+Todo bloco `catch` deve ter ação ou comentário justificado.
+
+```csharp
+// ✅ Correto — justifica o catch vazio
+try { return client.GetFolder(SpecialFolder.Junk); }
+catch (NotSupportedException) { /* servidor não suporta SpecialFolder — continua para fallback */ }
+
+// ✅ Correto — registra o erro
+catch (Exception ex) { erros.Add($"UID {mensagem.UidImap}: {ex.Message}"); }
+
+// ❌ Errado — SonarQube: "Either remove or fill this block of code"
+catch { }
+```
+
+---
+
+### Async/Await
+
+Sempre use a versão `async` de métodos de I/O dentro de métodos assíncronos.
+
+```csharp
+// ✅ Correto
+await Console.Out.WriteLineAsync("mensagem");
+
+// ❌ Errado — SonarQube: "Await WriteLineAsync instead"
+Console.WriteLine("mensagem");  // dentro de método async
+```
+
+---
+
+### Caminhos e URIs — Sem Hardcode
+
+Nunca coloque caminhos absolutos ou URIs no código-fonte. Use configuração ou parâmetros.
+
+```csharp
+// ✅ Correto — vem de configuração
+var caminho = _configuracoes.ArquivoBloqueio;
+
+// ❌ Errado — SonarQube: "Refactor your code not to use hardcoded absolute paths or URIs"
+var caminho = @"C:\EmailSpamFilter\bloqueio.json";
+```
+
+---
+
+### Segurança — Credenciais
+
+Nunca coloque credenciais no código ou em `appsettings.json` versionado.
+
+```csharp
+// ✅ Correto — via user-secrets (dev) ou variável de ambiente (prod)
+// dotnet user-secrets set "ConfiguracoesImap:Email" "usuario@outlook.com"
+// dotnet user-secrets set "ConfiguracoesImap:Senha" "app-password"
+
+// ❌ Proibido
+const string email = "usuario@outlook.com";
+const string senha = "minha-senha";
+```
+
+---
+
+### Expressões Regulares
+
+Sempre defina **timeout** em Regex compilados para evitar ReDoS.
+Use `GeneratedRegex` quando possível (.NET 7+).
+
+```csharp
+// ✅ Correto — com timeout
+var regex = new Regex(padrao, RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+
+// ✅ Melhor ainda — source generator (.NET 7+)
+[GeneratedRegex(@"^(?<nome>[^<]+)<(?<email>[^>]+)>$")]
+private static partial Regex EmailComNomeRegex();
+
+// ❌ Errado — sem timeout, vulnerável a ReDoS
+var regex = new Regex(padrao, RegexOptions.Compiled);
+```
+
+---
+
+### Testes
+
+- Stack: **xUnit + FluentAssertions + NSubstitute**
+- Nome: `Metodo_DeveResultado_QuandoCondicao`
+- Um assert por teste via `.Should()`
+- Testes de integração: `[Trait("Category", "Integracao")]`
+- CI exclui integração: `--filter "Category!=Integracao"`
+
+```csharp
+// ✅ Padrão correto
+[Fact]
+public void Criar_DeveLancarExcecao_QuandoEmailSemArroba()
+{
+    var acao = () => EnderecoEmail.Criar("emailsemarroba");
+    acao.Should().Throw<EnderecoEmailInvalidoException>();
+}
+
+[Fact]
+[Trait("Category", "Integracao")]
+public async Task Conectar_DeveAutenticar_QuandoCredenciaisCorretas()
+{
+    // teste real contra servidor IMAP
+}
+```
+
+---
+
+### CI/CD — GitHub Actions + SonarCloud
+
+O workflow `.github/workflows/sonarcloud.yml` roda a cada `push` em `main`:
+
+1. Build da solution `EmailSpamFilter.slnx`
+2. Testes unitários com cobertura OpenCover (via coverlet)
+3. Análise SonarCloud — organização: `albernazbr`, projeto: `AlbernazBR_Email`
+
+**Requisito:** secret `SONAR_TOKEN` configurado no repositório GitHub.
+
+Antes de fazer push, valide localmente:
+
+```powershell
+dotnet build EmailSpamFilter.slnx
+dotnet test --filter "Category!=Integracao"
+```
+
+---
+
+### Checklist antes de gerar código
+
+- [ ] Nomes em português?
+- [ ] Exceções terminam com `Exception`?
+- [ ] Loops de busca usam `FirstOrDefault` em vez de `foreach`?
+- [ ] Complexidade cognitiva < 15?
+- [ ] Nenhum `catch {}` vazio sem comentário?
+- [ ] Sem caminho absoluto ou credencial hardcoded?
+- [ ] Regex tem timeout definido?
+- [ ] Testes de integração marcados com `[Trait("Category", "Integracao")]`?
