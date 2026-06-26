@@ -55,14 +55,14 @@ $binPath = '"' + $caminhoExe + '"'
 
 if ($null -eq $servicoExistente) {
     Escrever-Log "Criando servico '$NomeServico'..."
-    $resultadoCriacao = sc.exe create $NomeServico binPath= $binPath start= auto DisplayName= '"' + $NomeExibicao + '"'
+    $resultadoCriacao = sc.exe create $NomeServico "binPath= $binPath" "start= auto" "DisplayName= $NomeExibicao"
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao criar servico. Saida: $resultadoCriacao"
     }
 }
 else {
     Escrever-Log "Atualizando configuracao do servico '$NomeServico'..."
-    $resultadoConfig = sc.exe config $NomeServico binPath= $binPath start= auto DisplayName= '"' + $NomeExibicao + '"'
+    $resultadoConfig = sc.exe config $NomeServico "binPath= $binPath" "start= auto" "DisplayName= $NomeExibicao"
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao atualizar servico. Saida: $resultadoConfig"
     }
