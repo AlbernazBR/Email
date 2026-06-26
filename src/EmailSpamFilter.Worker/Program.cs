@@ -29,6 +29,7 @@ builder.Services.AddSingleton<FabricaClienteImap>();
 builder.Services.AddTransient<ILeitorEmail, LeitorEmailImap>();
 builder.Services.AddTransient<IAcoesEmail, AcoesEmailImap>();
 builder.Services.AddTransient<IRepositorioBloqueio, RepositorioBloqueioJson>();
+builder.Services.AddSingleton<IEscritorSaude, EscritorSaudeJson>();
 
 // ── Application ───────────────────────────────────────────────────────────────
 builder.Services.AddTransient<IProcessarCaixaEntradaCasoDeUso, ProcessarCaixaEntradaCasoDeUso>();

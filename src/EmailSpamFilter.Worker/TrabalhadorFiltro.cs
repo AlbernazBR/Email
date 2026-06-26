@@ -8,15 +8,19 @@ namespace EmailSpamFilter.Worker;
 public sealed class TrabalhadorFiltro : BackgroundService
 {
     private readonly IProcessarCaixaEntradaCasoDeUso _casoDeUso;
+    private readonly IEscritorSaude _escritorSaude;
     private readonly ConfiguracoesFiltro _config;
     private readonly ILogger<TrabalhadorFiltro> _logger;
+    private int _falhasConsecutivas;
 
     public TrabalhadorFiltro(
         IProcessarCaixaEntradaCasoDeUso casoDeUso,
+        IEscritorSaude escritorSaude,
         IOptions<ConfiguracoesFiltro> options,
         ILogger<TrabalhadorFiltro> logger)
     {
         _casoDeUso = casoDeUso;
+        _escritorSaude = escritorSaude;
         _config = options.Value;
         _logger = logger;
     }
@@ -41,6 +45,8 @@ public sealed class TrabalhadorFiltro : BackgroundService
 
     private async Task ExecutarCicloAsync(CancellationToken ct)
     {
+        ResultadoProcessamento? resultado = null;
+
         try
         {
             _logger.LogDebug("Iniciando varredura da caixa de entrada...");
@@ -52,19 +58,12 @@ public sealed class TrabalhadorFiltro : BackgroundService
                 ModoSimulacao = _config.ModoSimulacao
             };
 
-            var resultado = await _casoDeUso.ExecutarAsync(opcoes, ct);
+            resultado = await _casoDeUso.ExecutarAsync(opcoes, ct);
+            _falhasConsecutivas = resultado.Erros.Count > 0 ? _falhasConsecutivas + 1 : 0;
 
-            if (_config.ModoSimulacao)
-                _logger.LogInformation(
-                    "[SIMULAÇÃO] Ciclo concluído — Analisados: {Processados} | Seriam removidos: {Spam} | Erros: {Erros}",
-                    resultado.Processados, resultado.QuantidadeSpam, resultado.Erros.Count);
-            else
-                _logger.LogInformation(
-                    "Ciclo concluído — Analisados: {Processados} | Spam removido: {Spam} | Erros: {Erros}",
-                    resultado.Processados, resultado.QuantidadeSpam, resultado.Erros.Count);
+            await RegistrarSaudeAsync(resultado, true, ct);
 
-            foreach (var erro in resultado.Erros)
-                _logger.LogWarning("Erro durante processamento: {Erro}", erro);
+            RegistrarLogsResultado(resultado);
         }
         catch (OperationCanceledException)
         {
@@ -72,7 +71,40 @@ public sealed class TrabalhadorFiltro : BackgroundService
         }
         catch (Exception ex)
         {
+            _falhasConsecutivas++;
             _logger.LogError(ex, "Erro inesperado no ciclo de varredura.");
+            await RegistrarSaudeAsync(resultado, false, ct);
         }
+    }
+
+    private async Task RegistrarSaudeAsync(ResultadoProcessamento? resultado, bool sucesso, CancellationToken ct)
+    {
+        var instantaneo = new InstantaneoSaude
+        {
+            DataHoraUltimoCicloUtc = DateTimeOffset.UtcNow,
+            Processados = resultado?.Processados ?? 0,
+            QuantidadeSpam = resultado?.QuantidadeSpam ?? 0,
+            QuantidadeErros = resultado?.Erros.Count ?? 0,
+            Sucesso = sucesso,
+            ModoSimulacao = _config.ModoSimulacao,
+            FalhasConsecutivas = _falhasConsecutivas
+        };
+
+        await _escritorSaude.RegistrarAsync(instantaneo, ct);
+    }
+
+    private void RegistrarLogsResultado(ResultadoProcessamento resultado)
+    {
+        if (_config.ModoSimulacao)
+            _logger.LogInformation(
+                "[SIMULAÇÃO] Ciclo concluído — Analisados: {Processados} | Seriam removidos: {Spam} | Erros: {Erros}",
+                resultado.Processados, resultado.QuantidadeSpam, resultado.Erros.Count);
+        else
+            _logger.LogInformation(
+                "Ciclo concluído — Analisados: {Processados} | Spam removido: {Spam} | Erros: {Erros}",
+                resultado.Processados, resultado.QuantidadeSpam, resultado.Erros.Count);
+
+        foreach (var erro in resultado.Erros)
+            _logger.LogWarning("Erro durante processamento: {Erro}", erro);
     }
 }

@@ -33,6 +33,7 @@ packages/
 ## Logs gerados em runtime
 logs/
 *.log
+**/saude.json
 
 ## OS
 Thumbs.db
@@ -40,3 +41,9 @@ Thumbs.db
 
 ## Publicação
 publish/
+
+## Configuracao local de credenciais do servico (nao versionar)
+scripts/configurar-imap-servico.local.ps1
+scripts/deploy-completo.local.ps1
+scripts/instalar-deploy-handsfree.local.ps1
+scripts/executar-deploy-handsfree.local.ps1

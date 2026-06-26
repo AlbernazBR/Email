@@ -3,6 +3,7 @@
     <Project Path="src/EmailSpamFilter.Application/EmailSpamFilter.Application.csproj" />
     <Project Path="src/EmailSpamFilter.Domain/EmailSpamFilter.Domain.csproj" />
     <Project Path="src/EmailSpamFilter.Infrastructure/EmailSpamFilter.Infrastructure.csproj" />
+    <Project Path="src/EmailSpamFilter.Tray/EmailSpamFilter.Tray.csproj" />
     <Project Path="src/EmailSpamFilter.Worker/EmailSpamFilter.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">

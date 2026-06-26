@@ -23,7 +23,10 @@ public sealed class RepositorioBloqueioJson : IRepositorioBloqueio
         IOptions<ConfiguracoesFiltro> options,
         ILogger<RepositorioBloqueioJson> logger)
     {
-        _caminhoArquivo = options.Value.ArquivoBloqueio;
+        var caminhoConfigurado = options.Value.ArquivoBloqueio;
+        _caminhoArquivo = Path.IsPathRooted(caminhoConfigurado)
+            ? caminhoConfigurado
+            : Path.Combine(AppContext.BaseDirectory, caminhoConfigurado);
         _logger = logger;
     }
 

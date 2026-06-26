@@ -1,0 +1,25 @@
+param(
+    [string]$NomeServico = "EmailSpamFilter"
+)
+
+$ErrorActionPreference = "Stop"
+
+# Preencha APENAS localmente e nao versione valores reais.
+$EmailImap = "SEU_EMAIL_OUTLOOK"
+$ClientIdOAuth = "SEU_CLIENT_ID_ENTRA"
+
+if ([string]::IsNullOrWhiteSpace($EmailImap) -or $EmailImap -eq "SEU_EMAIL_OUTLOOK") {
+    throw "Preencha a variavel EmailImap com seu e-mail real."
+}
+
+if ([string]::IsNullOrWhiteSpace($ClientIdOAuth) -or $ClientIdOAuth -eq "SEU_CLIENT_ID_ENTRA") {
+    throw "Preencha a variavel ClientIdOAuth com seu ClientId real."
+}
+
+[Environment]::SetEnvironmentVariable("ConfiguracoesImap__Email", $EmailImap, "Machine")
+[Environment]::SetEnvironmentVariable("ConfiguracoesImap__ClientId", $ClientIdOAuth, "Machine")
+
+Write-Host "Variaveis de ambiente do servico atualizadas com sucesso." -ForegroundColor Green
+Write-Host "Reiniciando servico '$NomeServico'..." -ForegroundColor Yellow
+Restart-Service $NomeServico
+Write-Host "Servico reiniciado." -ForegroundColor Green
