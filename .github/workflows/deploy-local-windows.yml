@@ -11,10 +11,12 @@ jobs:
     runs-on: [self-hosted, windows]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          clean: false
+      - name: Sincronizar repositorio (checkout manual)
+        shell: pwsh
+        run: |
+          git fetch origin main --prune
+          git checkout main
+          git reset --hard origin/main
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
