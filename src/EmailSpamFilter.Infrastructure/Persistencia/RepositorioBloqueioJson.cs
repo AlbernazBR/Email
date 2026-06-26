@@ -88,10 +88,22 @@ public sealed class RepositorioBloqueioJson : IRepositorioBloqueio
             }
         }
 
+        foreach (var p in dto.RemetentesPermitidos)
+        {
+            try
+            {
+                regras.AdicionarPermitidoRemetente(p);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Remetente permitido inválido ignorado '{P}': {Erro}", p, ex.Message);
+            }
+        }
+
         _logger.LogInformation(
-            "Bloqueio carregado — Global: {G}, Remetente: {R}, Cabeçalho: {C}, Impostores: {I}, Regex: {X}",
+            "Bloqueio carregado — Global: {G}, Remetente: {R}, Cabeçalho: {C}, Impostores: {I}, Regex: {X}, Permitidos: {P}",
             dto.Padroes.Count, dto.PadroesPorRemetente.Count, dto.PadroesPorCabecalho.Count,
-            dto.Impostores.Count, dto.PadroesDominioSuspeito.Count);
+            dto.Impostores.Count, dto.PadroesDominioSuspeito.Count, dto.RemetentesPermitidos.Count);
 
         return regras;
     }
@@ -116,6 +128,7 @@ public sealed class RepositorioBloqueioJson : IRepositorioBloqueio
         public List<string> PadroesPorCabecalho { get; set; } = [];
         public List<ImpostorDto> Impostores { get; set; } = [];
         public List<string> PadroesDominioSuspeito { get; set; } = [];
+        public List<string> RemetentesPermitidos { get; set; } = [];
     }
 
     private sealed class ImpostorDto

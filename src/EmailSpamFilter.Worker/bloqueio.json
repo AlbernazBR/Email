@@ -31,5 +31,12 @@
     "---",
     "@[^.@\\s]+\\s",
     "@[a-z]+-[a-z0-9]{2,6}-[a-z0-9]{2,6}\\."
+  ],
+  "remetentesPermitidos": [
+    "99pay@novidades.99app.com",
+    "McDonalds@news.mcdonalds.com.br",
+    "contato@emkt.b3.com.br",
+    "newsletters-noreply@linkedin.com",
+    "no-reply@read.ai"
   ]
 }

@@ -66,4 +66,26 @@ public sealed class RegrasBloqueioTestes
 
         regras.ObterRegrasAtivas().Should().HaveCount(2);
     }
+
+    [Fact]
+    public void EhRemetentePermitido_DeveRetornarVerdadeiro_QuandoEmailExatoFoiPermitido()
+    {
+        var regras = new RegrasBloqueio();
+        regras.AdicionarPermitidoRemetente("99pay@novidades.99app.com");
+
+        var permitido = regras.EhRemetentePermitido("99pay@novidades.99app.com");
+
+        permitido.Should().BeTrue();
+    }
+
+    [Fact]
+    public void EhRemetentePermitido_DeveRetornarVerdadeiro_QuandoDominioFoiPermitido()
+    {
+        var regras = new RegrasBloqueio();
+        regras.AdicionarPermitidoRemetente("99app.com");
+
+        var permitido = regras.EhRemetentePermitido("99pay@novidades.99app.com");
+
+        permitido.Should().BeTrue();
+    }
 }

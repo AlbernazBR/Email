@@ -79,4 +79,21 @@ public sealed class RepositorioBloqueioJsonTestes : IDisposable
         // Segundo duplicado é ignorado silenciosamente pelo repositório
         regras.ObterRegrasAtivas().Should().HaveCount(1);
     }
+
+    [Fact]
+    public async Task CarregarAsync_DeveCarregar_RemetentesPermitidos()
+    {
+        var json = """
+            {
+              "padroes": ["unsubscribe"],
+              "remetentesPermitidos": ["99pay@novidades.99app.com"]
+            }
+            """;
+        await File.WriteAllTextAsync(_arquivoTemp, json);
+
+        var repo = CriarRepositorio(_arquivoTemp);
+        var regras = await repo.CarregarAsync(CancellationToken.None);
+
+        regras.EhRemetentePermitido("99pay@novidades.99app.com").Should().BeTrue();
+    }
 }

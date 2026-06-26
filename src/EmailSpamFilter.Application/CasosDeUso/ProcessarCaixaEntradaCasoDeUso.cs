@@ -1,5 +1,6 @@
 using EmailSpamFilter.Application.DTOs;
 using EmailSpamFilter.Application.Interfaces;
+using EmailSpamFilter.Domain.Agregados;
 using EmailSpamFilter.Domain.Entidades;
 using EmailSpamFilter.Domain.Enums;
 using EmailSpamFilter.Domain.Interfaces;
@@ -43,7 +44,15 @@ public sealed class ProcessarCaixaEntradaCasoDeUso : IProcessarCaixaEntradaCasoD
         {
             try
             {
-                ClassificarMensagem(mensagem, regrasAtivas, impostoras, remetenteRegex, opcoes, spamParaDeletar, spamParaMover);
+                ClassificarMensagem(
+                    mensagem,
+                    regrasAtivas,
+                    impostoras,
+                    remetenteRegex,
+                    regrasBloqueio,
+                    opcoes,
+                    spamParaDeletar,
+                    spamParaMover);
             }
             catch (Exception ex)
             {
@@ -67,10 +76,21 @@ public sealed class ProcessarCaixaEntradaCasoDeUso : IProcessarCaixaEntradaCasoD
         IReadOnlyList<RegraSpam> regrasAtivas,
         IReadOnlyList<RegraImpostora> impostoras,
         IReadOnlyList<RegraRemetenteRegex> remetenteRegex,
+        RegrasBloqueio regrasBloqueio,
         OpcoesProcessamento opcoes,
         List<MensagemEmail> spamParaDeletar,
         List<MensagemEmail> spamParaMover)
     {
+        if (regrasBloqueio.EhRemetentePermitido(mensagem.Remetente.Valor))
+        {
+            _logger.LogDebug(
+                "[PERMITIDO] De: {NomeExibido} <{Remetente}> | Assunto: {Assunto}",
+                mensagem.Remetente.NomeExibido,
+                mensagem.Remetente.Valor,
+                mensagem.Assunto);
+            return;
+        }
+
         var resultado = mensagem.Analisar(regrasAtivas, impostoras, remetenteRegex);
 
         if (resultado.EhSpam)

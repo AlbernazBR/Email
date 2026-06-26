@@ -129,4 +129,25 @@ public sealed class ProcessarCaixaEntradaTestes
         resultado.Erros.Should().HaveCount(1);
         resultado.QuantidadeSpam.Should().Be(2);
     }
+
+    [Fact]
+    public async Task ExecutarAsync_NaoDeveClassificarComoSpam_QuandoRemetenteEstaPermitido()
+    {
+        var mensagem = CriarMensagem("99pay@novidades.99app.com");
+        _leitor.ObterNaoLidosAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+               .Returns([mensagem]);
+
+        var regras = CriarRegras("unsubscribe");
+        regras.AdicionarPermitidoRemetente("99pay@novidades.99app.com");
+
+        _repositorio.CarregarAsync(Arg.Any<CancellationToken>())
+                    .Returns(regras);
+
+        var resultado = await CriarCasoDeUso().ExecutarAsync(
+            new OpcoesProcessamento { Acao = AcaoFiltro.Deletar }, CancellationToken.None);
+
+        await _acoes.DidNotReceive().DeletarLoteAsync(
+            Arg.Any<IReadOnlyList<MensagemEmail>>(), Arg.Any<CancellationToken>());
+        resultado.QuantidadeSpam.Should().Be(0);
+    }
 }
