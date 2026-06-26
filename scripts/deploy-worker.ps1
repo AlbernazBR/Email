@@ -55,17 +55,11 @@ $binPath = '"' + $caminhoExe + '"'
 
 if ($null -eq $servicoExistente) {
     Escrever-Log "Criando servico '$NomeServico'..."
-    $resultadoCriacao = sc.exe create $NomeServico "binPath= $binPath" "start= auto" "DisplayName= $NomeExibicao"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Falha ao criar servico. Saida: $resultadoCriacao"
-    }
+    New-Service -Name $NomeServico -BinaryPathName $binPath -DisplayName $NomeExibicao -StartupType Automatic | Out-Null
 }
 else {
-    Escrever-Log "Atualizando configuracao do servico '$NomeServico'..."
-    $resultadoConfig = sc.exe config $NomeServico "binPath= $binPath" "start= auto" "DisplayName= $NomeExibicao"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Falha ao atualizar servico. Saida: $resultadoConfig"
-    }
+    Escrever-Log "Servico '$NomeServico' ja existe. Mantendo configuracao atual."
+    Set-Service -Name $NomeServico -StartupType Automatic
 }
 
 Escrever-Log "Iniciando servico '$NomeServico'..."
