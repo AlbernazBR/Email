@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Sincronizar repositorio (checkout manual)
-        shell: pwsh
+        shell: powershell
         run: |
           git fetch origin main --prune
           git checkout main
@@ -27,12 +27,12 @@ jobs:
         run: dotnet restore EmailSpamFilter.slnx
 
       - name: Publish Worker
-        shell: pwsh
+        shell: powershell
         run: |
           dotnet publish src/EmailSpamFilter.Worker/EmailSpamFilter.Worker.csproj -c Release -o "${{ github.workspace }}/out/worker"
 
       - name: Deploy no Windows Service local
-        shell: pwsh
+        shell: powershell
         run: |
           ./scripts/deploy-worker.ps1 `
             -CaminhoPublicacao "${{ github.workspace }}/out/worker" `
