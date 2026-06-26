@@ -1,0 +1,37 @@
+name: Deploy Local Windows
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Publicar e implantar Windows Service
+    runs-on: [self-hosted, windows]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore
+        run: dotnet restore EmailSpamFilter.slnx
+
+      - name: Publish Worker
+        shell: pwsh
+        run: |
+          dotnet publish src/EmailSpamFilter.Worker/EmailSpamFilter.Worker.csproj -c Release -o "${{ github.workspace }}/out/worker"
+
+      - name: Deploy no Windows Service local
+        shell: pwsh
+        run: |
+          ./scripts/deploy-worker.ps1 `
+            -CaminhoPublicacao "${{ github.workspace }}/out/worker" `
+            -NomeServico "EmailSpamFilter" `
+            -NomeExibicao "Email Spam Filter" `
+            -DiretorioInstalacao "C:/Services/EmailSpamFilter"
