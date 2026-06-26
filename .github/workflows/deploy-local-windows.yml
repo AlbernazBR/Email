@@ -9,10 +9,12 @@ jobs:
   deploy:
     name: Publicar e implantar Windows Service
     runs-on: [self-hosted, windows]
+    defaults:
+      run:
+        shell: cmd
 
     steps:
       - name: Sincronizar repositorio (checkout manual)
-        shell: cmd
         run: |
           git fetch origin main --prune
           git checkout main
@@ -27,11 +29,9 @@ jobs:
         run: dotnet restore EmailSpamFilter.slnx
 
       - name: Publish Worker
-        shell: cmd
         run: |
           dotnet publish src/EmailSpamFilter.Worker/EmailSpamFilter.Worker.csproj -c Release -o "%GITHUB_WORKSPACE%\\out\\worker"
 
       - name: Deploy no Windows Service local
-        shell: cmd
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\deploy-worker.ps1 -CaminhoPublicacao "%GITHUB_WORKSPACE%\\out\\worker" -NomeServico "EmailSpamFilter" -NomeExibicao "Email Spam Filter" -DiretorioInstalacao "C:\Services\EmailSpamFilter"
